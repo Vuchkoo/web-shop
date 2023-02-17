@@ -191,6 +191,7 @@ button:hover,
 
 .cart-main {
     border-bottom: 1px solid #151516;
+    overflow-y: auto;
 }
 
 .price {

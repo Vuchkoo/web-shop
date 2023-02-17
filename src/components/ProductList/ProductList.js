@@ -1,109 +1,97 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../Header/Header";
 import Container from "../Container/Container";
 
-export default class ProductList extends Component {
-  constructor(props) {
-    super(props);
+const ProductList = (props) => {
+  const [products, setProducts] = useState([]);
+  const [sizes, setSizes] = useState(["XS", "S", "M", "ML", "L", "XL", "XXL"]);
+  const [isActive, setIsActive] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [isExists, setIsExists] = useState(false);
 
-    this.state = {
-      products: [],
-      sizes: ["XS", "S", "M", "ML", "L", "XL", "XXL"],
-      isActive: false,
-      selectedSize: null,
-      cart: [],
-      isExists: false,
-    };
-  }
-
-  componentDidMount() {
+  useEffect(() => {
     fetch("https://react-shopping-cart-67954.firebaseio.com/products.json")
       .then((response) => response.json())
-      .then((data) => {
-        this.setState({ products: data.products });
-      });
-  }
+      .then((data) => setProducts(data.products));
+  }, []);
 
-  handleOpen = () => {
-    this.setState({ isActive: true });
+  const handleOpen = () => {
+    setIsActive(true);
   };
 
-  handleClose = () => {
-    this.setState({ isActive: false });
+  const handleClose = () => {
+    setIsActive(false);
   };
 
-  handleSize = (e, size) => {
-    this.setState({ selectedSize: size });
+  const handleSize = (e, size) => {
+    setSelectedSize(size);
   };
 
-  handleAddToCart = (e, item) => {
-    const isExists = this.state.cart.some((cart) => {
+  const handleAddToCart = (e, item) => {
+    const isExists = cart.some((cart) => {
       return cart.id === item.id;
     });
     if (isExists) {
-      // console.log("if");
-      this.setState({
-        cart: this.state.cart?.map((cart) => {
+      setCart(
+        cart?.map((cart) => {
           if (cart.id === item.id) {
             return { ...cart, quantity: cart.quantity + 1 };
           }
           return cart;
-        }),
-      });
+        })
+      );
     } else {
-      return this.setState({
-        cart: [...this.state.cart, { ...item, quantity: 1 }],
-      });
+      return setCart([...cart, { ...item, quantity: 1 }]);
     }
   };
 
-  handleRemoveFromCart = (e, id) => {
-    this.setState({
-      cart: [
-        ...this.state.cart.filter((item) => {
-          if (item.id !== id) {
-            return item;
-          }
-        }),
-      ],
-    });
+  const handleRemoveFromCart = (e, id) => {
+    setCart([
+      ...cart.filter((item) => {
+        if (item.id !== id) {
+          return item;
+        }
+      }),
+    ]);
   };
 
-  handleRemoveQuantity = (e, item) => {
-    const isExists = this.state.cart.some((cart) => {
+  const handleRemoveQuantity = (e, item) => {
+    const isExists = cart.some((cart) => {
       return cart.id === item.id;
     });
     if (isExists) {
-      // console.log("if");
-      this.setState({
-        cart: this.state.cart?.map((cart) => {
+      setCart(
+        cart?.map((cart) => {
           if (cart.id === item.id && cart.quantity > 1) {
             return { ...cart, quantity: cart.quantity - 1 };
           }
           return cart;
-        }),
-      });
+        })
+      );
     }
   };
 
-  render() {
-    // console.log(this.state.cart);
-    return (
-      <>
-        <Header
-          data={this.state}
-          onOpen={this.handleOpen}
-          onClose={this.handleClose}
-          onRemove={this.handleRemoveFromCart}
-          onAdd={this.handleAddToCart}
-          onMinus={this.handleRemoveQuantity}
-        />
-        <Container
-          data={this.state}
-          onSize={this.handleSize}
-          onAdd={this.handleAddToCart}
-        />
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <Header
+        cart={cart}
+        onOpen={handleOpen}
+        onClose={handleClose}
+        onRemove={handleRemoveFromCart}
+        onAdd={handleAddToCart}
+        onMinus={handleRemoveQuantity}
+        isActive={isActive}
+      />
+      <Container
+        data={products}
+        sizes={sizes}
+        onSize={handleSize}
+        selectedSize={selectedSize}
+        onAdd={handleAddToCart}
+      />
+    </>
+  );
+};
+
+export default ProductList;
